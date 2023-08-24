@@ -283,24 +283,36 @@ def create_commit_for_date(date, num_commits=1):
 
 def should_have_contribution(date):
     """
-    Determine if a date should have contributions and how many
+    Determine how many commits a date should have (always creates if missing)
     Returns: (should_have, num_commits)
+    Since we only call this for days WITHOUT contributions, always return True
     """
-    # Weekend days (Saturday=5, Sunday=6) have 60% chance
-    if date.weekday() >= 5:
-        if random.random() > 0.6:
-            return (False, 0)
-        # Weekend: 1-2 commits
-        return (True, random.randint(1, 2))
+    # Always create contributions for days that don't have them
+    # Use deterministic pattern based on day number for variety
+    # This ensures same day always gets same number of commits if rerun
     
-    # Weekdays have 85% chance
-    if random.random() > 0.85:
-        return (False, 0)
+    day_of_year = date.timetuple().tm_yday
+    weekday = date.weekday()
     
-    # Weekday: 1-5 commits (more commits = darker green)
-    # Weight towards 1-3 commits
-    weights = [0.4, 0.3, 0.15, 0.1, 0.05]  # 1, 2, 3, 4, 5 commits
-    num_commits = random.choices([1, 2, 3, 4, 5], weights=weights)[0]
+    # Deterministic pattern: use day number to determine commits
+    # Weekend (Sat/Sun): 1-2 commits
+    if weekday >= 5:
+        # Deterministic: every 3rd weekend day gets 2 commits, others get 1
+        num_commits = 2 if (day_of_year % 7) == 0 else 1
+    else:
+        # Weekdays: 1-5 commits based on day pattern
+        # Use modulo to create variety: 1, 2, 3, 4, or 5 commits
+        pattern = day_of_year % 10
+        if pattern < 4:
+            num_commits = 1
+        elif pattern < 7:
+            num_commits = 2
+        elif pattern < 9:
+            num_commits = 3
+        elif pattern == 9:
+            num_commits = 4
+        else:
+            num_commits = 5
     
     return (True, num_commits)
 
