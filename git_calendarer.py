@@ -168,76 +168,12 @@ def create_commit_for_date(date, num_commits=1):
     
     for i, commit_time in enumerate(commit_times):
         print(f"[DEBUG] Processing commit {i+1}/{len(commit_times)} at {commit_time}")
-        # Create or update a file with contribution data
-        # Add unique content to ensure git sees it as different
-        contribution_data = {
-            "date": date_str,
-            "commit_number": i + 1,
-            "total_commits": num_commits,
-            "timestamp": commit_time,
-            "unique_id": f"{date_str}-{commit_time}-{i+1}"
-        }
         
-        print(f"[DEBUG] Writing contribution data to contributions.json")
-        try:
-            with open("contributions.json", 'w') as f:
-                json.dump(contribution_data, f, indent=2, default=str)
-            print(f"[DEBUG] File written successfully")
-        except Exception as e:
-            print(f"[ERROR] Failed to write contributions.json: {e}")
-            continue
+        # Remove git lock before committing
+        remove_git_lock()
         
-        # Stage the file and verify it was staged
-        print(f"[DEBUG] Staging contributions.json")
-        remove_git_lock()  # Remove lock before adding
-        
-        # Check if file is tracked
-        ls_files = run_git_command("git ls-files contributions.json", check=False)
-        is_tracked = ls_files and "contributions.json" in ls_files
-        print(f"[DEBUG] File tracked: {is_tracked}")
-        
-        # Add the file
-        add_result = run_git_command("git add contributions.json", check=False, verbose=True)
-        
-        # Check if file is actually staged
-        # Use diff --cached to verify something is staged for commit
-        diff_cached = run_git_command("git diff --cached --name-only", check=False)
-        is_staged = diff_cached and "contributions.json" in diff_cached
-        
-        if not is_staged:
-            print(f"[WARNING] File not staged. Checking git status...")
-            status_result = run_git_command("git status --porcelain contributions.json", check=False)
-            print(f"[DEBUG] Git status: {status_result}")
-            
-            # If file shows as modified but not staged, or if it's untracked
-            if status_result:
-                if status_result.startswith("??"):  # Untracked file
-                    print(f"[DEBUG] File is untracked, trying add again...")
-                    run_git_command("git add contributions.json", check=False, verbose=True)
-                elif status_result.startswith(" M"):  # Modified but not staged
-                    print(f"[DEBUG] File modified but not staged, trying force add...")
-                    run_git_command("git add -f contributions.json", check=False, verbose=True)
-            
-            # Verify again
-            diff_cached = run_git_command("git diff --cached --name-only", check=False)
-            is_staged = diff_cached and "contributions.json" in diff_cached
-            
-            if not is_staged:
-                print(f"[ERROR] Failed to stage contributions.json after retries. Status: {status_result}")
-                # Try one more time with a small delay and explicit add
-                time.sleep(0.1)  # Small delay to let file system sync
-                run_git_command("git add .", check=False, verbose=True)
-                diff_cached = run_git_command("git diff --cached --name-only", check=False)
-                is_staged = diff_cached and "contributions.json" in diff_cached
-                
-                if not is_staged:
-                    print(f"[ERROR] Final attempt failed. Skipping commit.")
-                    continue
-        
-        print(f"[DEBUG] File successfully staged for commit")
-        
-        # Create commit with backdated timestamp
-        # Use both --date flag and environment variables to ensure dates are set correctly
+        # Create commit with backdated timestamp using empty commit
+        # This avoids needing to modify files
         commit_message = f"Contribution for {date_str}"
         if num_commits > 1:
             commit_message += f" ({i+1}/{num_commits})"
@@ -249,12 +185,13 @@ def create_commit_for_date(date, num_commits=1):
         env['GIT_AUTHOR_DATE'] = date_time_str
         env['GIT_COMMITTER_DATE'] = date_time_str
         
-        print(f"[DEBUG] Creating commit with message: {commit_message}")
+        print(f"[DEBUG] Creating empty commit with message: {commit_message}")
         print(f"[DEBUG] Author date: {date_time_str}")
         print(f"[DEBUG] Committer date: {date_time_str}")
         
+        # Use --allow-empty to create commit without file changes
         # Use --date flag along with environment variables
-        commit_cmd = f'git commit --date="{date_time_str}" -m "{commit_message}"'
+        commit_cmd = f'git commit --allow-empty --date="{date_time_str}" -m "{commit_message}"'
         print(f"[DEBUG] Running: {commit_cmd}")
         
         result = subprocess.run(
