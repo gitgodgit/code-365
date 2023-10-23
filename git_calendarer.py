@@ -356,24 +356,23 @@ def process_dates():
             if days_processed % 50 == 0:
                 print(f"[INFO] Processed {days_processed} days... (already has {contribution_count} contributions: {current_date})")
         else:
-            # Determine if this date should have contributions
+            # Day has no contributions - always create some
             should_have, num_commits = should_have_contribution(current_date)
-            print(f"[DEBUG] For {current_date}: should_have={should_have}, num_commits={num_commits}")
+            print(f"[INFO] No contributions found for {current_date}. Creating {num_commits} commit(s)...")
             
-            if should_have:
-                print(f"[INFO] Creating {num_commits} commit(s) for {current_date}...")
-                commits_created = create_commit_for_date(current_date, num_commits)
-                
-                if commits_created:
-                    contributions[str(current_date)] = {
-                        "commits": num_commits,
-                        "created_at": datetime.now().isoformat()
-                    }
-                    total_commits_created += len(commits_created)
-                    days_with_contributions += 1
-                    print(f"[OK] Created {len(commits_created)} commit(s) for {current_date}")
-                else:
-                    print(f"[WARNING] No commits were created for {current_date} despite should_have=True")
+            print(f"[INFO] Creating {num_commits} commit(s) for {current_date}...")
+            commits_created = create_commit_for_date(current_date, num_commits)
+            
+            if commits_created:
+                contributions[str(current_date)] = {
+                    "commits": num_commits,
+                    "created_at": datetime.now().isoformat()
+                }
+                total_commits_created += len(commits_created)
+                days_with_contributions += 1
+                print(f"[OK] Created {len(commits_created)} commit(s) for {current_date}")
+            else:
+                print(f"[WARNING] No commits were created for {current_date}")
         
         current_date += timedelta(days=1)
     
