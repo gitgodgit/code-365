@@ -5,3 +5,6 @@ class Person:
 
     def __str__(self):
         return f"({self.name}, {self.age})"
+    
+    def sayHello(self):
+        print(f"Hello my name is {self.name}")

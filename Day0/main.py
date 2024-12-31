@@ -4,3 +4,4 @@ per = Person("noe", 23)
 
 print(per.name)
 print(per)
+per.sayHello()
