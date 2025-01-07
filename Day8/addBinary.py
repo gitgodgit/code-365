@@ -13,10 +13,7 @@ class addBinary:
 
         for i in range(length_a - 1, -1, -1):
             output = str((int(a[i]) + int(b[i]) + remainder) % 2) + output
-            if (int(a[i]) + int(b[i]) + remainder) > 1:
-                remainder = 1
-            else:
-                remainder = 0
+            reminder  =  (int(a[i]) + int(b[i]) + remainder) // 2
         if remainder == 1:
             output = '1' + output
         return output
