@@ -1,1 +1,1 @@
-Day 3 ffolder not counted as contribution?
+Day 3 folder not counted as contribution?
