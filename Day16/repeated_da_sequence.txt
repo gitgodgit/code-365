@@ -1,30 +1,21 @@
-190. Reverse Bits
-Easy
+187. Repeated DNA Sequences
+Medium
 Topics
 Companies
-Reverse bits of a given 32 bits unsigned integer.
+The DNA sequence is composed of a series of nucleotides abbreviated as 'A', 'C', 'G', and 'T'.
 
-Note:
+For example, "ACGAATTCCG" is a DNA sequence.
+When studying DNA, it is useful to identify repeated sequences within the DNA.
 
-Note that in some languages, such as Java, there is no unsigned integer type. In this case, both input and output will be given as a signed integer type. They should not affect your implementation, as the integer's internal binary representation is the same, whether it is signed or unsigned.
-In Java, the compiler represents the signed integers using 2's complement notation. Therefore, in Example 2 above, the input represents the signed integer -3 and the output represents the signed integer -1073741825.
+Given a string s that represents a DNA sequence, return all the 10-letter-long sequences (substrings) that occur more than once in a DNA molecule. You may return the answer in any order.
+
  
 
 Example 1:
 
-Input: n = 00000010100101000001111010011100
-Output:    964176192 (00111001011110000010100101000000)
-Explanation: The input binary string 00000010100101000001111010011100 represents the unsigned integer 43261596, so return 964176192 which its binary representation is 00111001011110000010100101000000.
+Input: s = "AAAAACCCCCAAAAACCCCCCAAAAAGGGTTT"
+Output: ["AAAAACCCCC","CCCCCAAAAA"]
 Example 2:
 
-Input: n = 11111111111111111111111111111101
-Output:   3221225471 (10111111111111111111111111111111)
-Explanation: The input binary string 11111111111111111111111111111101 represents the unsigned integer 4294967293, so return 3221225471 which its binary representation is 10111111111111111111111111111111.
- 
-
-Constraints:
-
-The input must be a binary string of length 32
- 
-
-Follow up: If this function is called many times, how would you optimize it?
+Input: s = "AAAAAAAAAAAAA"
+Output: ["AAAAAAAAAA"]
