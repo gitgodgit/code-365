@@ -1,20 +1,16 @@
 def distributeCandies(candyType: list[int]) -> int:
-    halved_candy = []
+    halved_candy = set()
     copy_candyType = candyType
     full_size = len(copy_candyType)
-    counter = 0
-    for i in range(len(copy_candyType) - counter):
-        if copy_candyType[i] not in halved_candy:
-            halved_candy.append(copy_candyType[i])
-            copy_candyType.remove(copy_candyType[i])
-            counter += 1
+    for i in range(full_size):
+        if copy_candyType[i]:
+            halved_candy.add(copy_candyType[i])
         if len(halved_candy) == full_size / 2:
             break
-    for i in range(len(copy_candyType)):
-        if len(halved_candy) < full_size // 2:
-            halved_candy.append(copy_candyType[i])
-        else:
-            break
     return len(halved_candy)
+
+def distributeCandies2(candyType: list[int]):
+    unique_candies = set(candyType)
+    return min(len(unique_candies), len(candyType) // 2)
         
         
