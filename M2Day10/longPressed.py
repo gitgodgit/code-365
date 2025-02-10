@@ -1,0 +1,1 @@
+def isLongPressedName(name: str, typed: str) -> bool:
