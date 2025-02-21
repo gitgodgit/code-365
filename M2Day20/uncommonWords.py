@@ -16,7 +16,8 @@ def uncommonFromSentences(s1: str, s2: str) -> list[str]:
             count_dict[word] = 1
     
     for key,value in count_dict.items():
-        if value <= 2:
+        if value < 2:
             uniques.append(key)
+    return uniques
 
         
