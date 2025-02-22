@@ -25,7 +25,7 @@ def smallestRangeI(nums: list[int], k: int) -> int:
     
     return max(nums) - min(nums)
 
-def optimiseddefSmallestRangeI(nums: l[int], k: int) -> int:
+def optimisedSmallestRangeI(nums: l[int], k: int) -> int:
         maximum = max(nums)
         minimum = min(nums)
         average = round((maximum + minimum) / 2)
@@ -34,6 +34,7 @@ def optimiseddefSmallestRangeI(nums: l[int], k: int) -> int:
                 nums[i] += min(average - nums[i], k)
             elif nums[i] > average:
                 nums[i] -= min(nums[i] - average, k)
-    
-        
         return max(nums) - min(nums)
+
+def oneLinerSmallestRangeI(nums: l[int], k: int) -> int:
+    return max(0, max(nums) - min(nums) - 2 * k)
