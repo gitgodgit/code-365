@@ -69,8 +69,24 @@ def init_git_repo():
         else:
             print(f"[DEBUG] Git init output: {result}")
         
-        run_git_command('git config user.name "Git Calendarer"', verbose=True)
-        run_git_command('git config user.email "calendarer@example.com"', verbose=True)
+        # Use global git config if available, otherwise use defaults
+        global_email = run_git_command("git config --global user.email", check=False)
+        global_name = run_git_command("git config --global user.name", check=False)
+        
+        if global_email:
+            email = global_email
+            print(f"[INFO] Using global git email: {email}")
+        else:
+            email = "134667441+gitgodgit@users.noreply.github.com"  # Default GitHub email format
+            print(f"[INFO] Using default GitHub email: {email}")
+        
+        if global_name:
+            name = global_name
+        else:
+            name = "gitgodgit"
+        
+        run_git_command(f'git config user.name "{name}"', verbose=True)
+        run_git_command(f'git config user.email "{email}"', verbose=True)
         print("[INFO] Git repository initialized.")
     else:
         print("[INFO] Git repository already exists.")
@@ -277,6 +293,10 @@ def process_dates():
     days_processed = 0
     days_with_contributions = 0
     
+    # Check for remote at start
+    remote_url = run_git_command("git config --get remote.origin.url", check=False)
+    has_remote = remote_url is not None
+    
     while current_date <= today:
         days_processed += 1
         
@@ -308,6 +328,18 @@ def process_dates():
                 total_commits_created += len(commits_created)
                 days_with_contributions += 1
                 print(f"[OK] Created {len(commits_created)} commit(s) for {current_date}")
+                
+                # Push periodically (every 50 days or 100 commits)
+                if has_remote and (days_with_contributions % 50 == 0 or total_commits_created % 100 == 0):
+                    if total_commits_created > 0:  # Only push if we've created commits
+                        print(f"\n[INFO] Periodic push: pushing commits to GitHub...")
+                        current_branch = run_git_command("git branch --show-current", check=False) or "main"
+                        remove_git_lock()
+                        push_result = run_git_command(f"git push origin {current_branch}", check=False, verbose=True)
+                        if push_result is None:
+                            # Try force push
+                            run_git_command(f"git push origin {current_branch} --force", check=False, verbose=True)
+                        print(f"[INFO] Continuing processing...\n")
             else:
                 print(f"[WARNING] No commits were created for {current_date}")
         
@@ -322,19 +354,54 @@ def process_dates():
     print(f"Total commits created: {total_commits_created}")
     print("="*50)
     
-    # Check if remote is configured
+    # Automatically push to GitHub
+    print("\n[INFO] Checking for remote repository...")
     remote_url = run_git_command("git config --get remote.origin.url", check=False)
+    
     if not remote_url:
-        print("\n[WARNING] No remote repository configured.")
-        print("To push to GitHub, run:")
+        print("[WARNING] No remote repository configured.")
+        print("To push to GitHub, first set up remote:")
         print("  git remote add origin <your-github-repo-url>")
         print("  git branch -M main")
-        print("  git push -u origin main")
     else:
-        print(f"\n[OK] Remote repository: {remote_url}")
-        print("\nTo push all commits to GitHub, run:")
-        print("  git push origin main")
-        print("\nNote: You may need to use --force if rewriting history:")
+        print(f"[OK] Remote repository found: {remote_url}")
+        
+        # Get current branch name
+        current_branch = run_git_command("git branch --show-current", check=False)
+        if not current_branch:
+            # Try to get default branch
+            current_branch = run_git_command("git rev-parse --abbrev-ref HEAD", check=False)
+        if not current_branch:
+            current_branch = "main"  # Default to main
+        
+        print(f"[INFO] Current branch: {current_branch}")
+        print(f"[INFO] Pushing commits to GitHub...")
+        
+        # Push to GitHub
+        # Use --force-with-lease for safety, but since we're creating backdated commits,
+        # we may need --force
+        remove_git_lock()
+        
+        # Try normal push first
+        push_result = run_git_command(f"git push -u origin {current_branch}", check=False, verbose=True)
+        
+        if push_result is None:
+            print("[WARNING] Normal push failed. Trying force push (needed for backdated commits)...")
+            # Force push is needed for backdated commits that rewrite history
+            force_push_result = run_git_command(
+                f"git push -u origin {current_branch} --force", 
+                check=False, 
+                verbose=True
+            )
+            
+            if force_push_result is None:
+                print("[ERROR] Failed to push to GitHub.")
+                print("You may need to push manually:")
+                print(f"  git push -u origin {current_branch} --force")
+            else:
+                print(f"[OK] Successfully pushed to GitHub (force push)")
+        else:
+            print(f"[OK] Successfully pushed to GitHub")
 
 
 if __name__ == "__main__":
